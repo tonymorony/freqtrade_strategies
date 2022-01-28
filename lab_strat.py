@@ -27,12 +27,7 @@ class lab_strat(IStrategy):
 
     buy_when_btc_rise = CategoricalParameter([True, False], default=True, space="buy")
     buy_ema_period = IntParameter(10, 365, default=23, space="buy")
-    sell_rsi = IntParameter(70, 99, default=78, space="sell")
-    sell_cci = IntParameter(100, 300, default=100, space="sell")
 
-    sell_rsi_enabled = CategoricalParameter([True, False], default=True, space="sell")
-    sell_cci_enabled = CategoricalParameter([True, False], default=True, space="sell")
-    sell_macd_enabled = CategoricalParameter([True, False], default=True, space="sell")
     buy_ema_test = IntParameter(10, 365, default=241, space="buy")
     # Optimal timeframe for the strategy.
     timeframe = '4h'
@@ -90,12 +85,7 @@ class lab_strat(IStrategy):
             informative[f'buy_ema_{val}'] = ta.EMA(informative, timeperiod=val)
 
         informative['ema'] = ta.EMA(informative, timeperiod=20)
-        dataframe['rsi'] = ta.RSI(dataframe)
-        macd = ta.MACD(dataframe)
-        dataframe['macd'] = macd['macd']
-        dataframe['macdsignal'] = macd['macdsignal']
-        dataframe['macdhist'] = macd['macdhist']
-        dataframe['cci'] = ta.CCI(dataframe)
+
         for val in self.buy_ema_test.range:
             dataframe[f'ema_{val}'] = ta.EMA(dataframe, timeperiod=val)
         dataframe = merge_informative_pair(dataframe, informative, self.timeframe, '1d', ffill=True)
