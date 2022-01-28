@@ -16,6 +16,38 @@ from functools import reduce
 """
 Idea of strategy is to sit patiently in fiat when market is decreasing, wait for bull market, sell high and then repeat
 |   Best |  147/1000 |      961 |    884    0   77 |        6.31% |  280380.525 USDT (28,038.05%) | 4 days 15:50:00 |    -5.59002 |    109503.421 USDT   (28.01%) |    
+
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_ema_period": 132,
+        "buy_when_btc_rise": True,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_cci": 262,
+        "sell_cci_enabled": True,
+        "sell_ema_enabled": True,
+        "sell_ema_period": 159,
+        "sell_macd_enabled": False,
+        "sell_rsi": 71,
+        "sell_rsi_enabled": True,
+        "sell_when_btc_drop": False,
+    }
+
+    # ROI table:  # value loaded from strategy
+    minimal_roi = {
+        "0": 10000
+    }
+
+    # Stoploss:
+    stoploss = -0.35
+
+    # Trailing stop:
+    trailing_stop = True  # value loaded from strategy
+    trailing_stop_positive = 0.01  # value loaded from strategy
+    trailing_stop_positive_offset = 0.08  # value loaded from strategy
+    trailing_only_offset_is_reached = True  # value loaded from strategy
 """
 
 
@@ -120,20 +152,5 @@ class tonyl_strategy_4(IStrategy):
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
 
         conditions = []
-
-        if self.sell_rsi_enabled:
-            conditions.append(dataframe['rsi'] > self.sell_rsi.value)
-        if self.sell_macd_enabled:
-            conditions.append(qtpylib.crossed_below(dataframe['macd'], dataframe['macdsignal']))
-        if self.sell_cci_enabled:
-            conditions.append(dataframe['cci'] >= self.sell_cci.value)
-        if self.sell_ema_enabled.value:
-            conditions.append(dataframe[f'sell_ema_{self.sell_ema_period.value}'] > dataframe['close'])
-        if self.sell_when_btc_drop.value:
-            conditions.append(dataframe['ema_1d'] > dataframe['close_1d'])
-        if conditions:
-            dataframe.loc[
-                reduce(lambda x, y: x & y, conditions),
-                'sell'] = 1
 
         return dataframe
