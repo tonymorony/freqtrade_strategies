@@ -15,9 +15,7 @@ from functools import reduce
 
 """
 Idea of strategy is to sit patiently in fiat when market is decreasing, wait for bull market, sell high and then repeat
-almost match 2021 market spike for pairs (4500%)
-|   Best |  54/100 |      946 |    650  235   61 |        4.03% |    36707.878 USDT (3,670.79%) | 2 days 17:35:00 |      -6.032 |     12154.798 USDT   (25.01%) | 
-
+ 657/5000:    879 trades. 693/126/60 Wins/Draws/Losses. Avg profit   5.19%. Median profit   8.48%. Total profit 73484.08206883 USDT (7348.41%). Avg duration 3 days, 9:03:00 min. Objective: -6.75854
 """
 
 
@@ -25,19 +23,18 @@ class lab_strat(IStrategy):
 
     INTERFACE_VERSION = 2
 
-    buy_when_btc_rise = CategoricalParameter([True, False], default=True, space="buy")
-    buy_ema_period = IntParameter(10, 365, default=23, space="buy")
+    buy_ema_period = IntParameter(10, 365, default=33, space="buy")
+    buy_ema_test = IntParameter(10, 365, default=26, space="buy")
 
-    buy_ema_test = IntParameter(10, 365, default=241, space="buy")
     # Optimal timeframe for the strategy.
     timeframe = '4h'
 
     # ROI table:
     minimal_roi = {
-        "0": 0.686,
-        "1645": 0.226,
-        "2535": 0.105,
-        "3922": 0
+        "0": 0.481,
+        "1307": 0.183,
+        "3414": 0.03,
+        "7636": 0
     }
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss"
@@ -46,7 +43,7 @@ class lab_strat(IStrategy):
     # Trailing stop:
     trailing_stop = True
     trailing_stop_positive = 0.01
-    trailing_stop_positive_offset = 0.076
+    trailing_stop_positive_offset = 0.097
     trailing_only_offset_is_reached = True
     # Run "populate_indicators()" only for new candle.
     process_only_new_candles = False
@@ -85,24 +82,20 @@ class lab_strat(IStrategy):
             informative[f'buy_ema_{val}'] = ta.EMA(informative, timeperiod=val)
 
         informative['ema'] = ta.EMA(informative, timeperiod=20)
-
         for val in self.buy_ema_test.range:
             dataframe[f'ema_{val}'] = ta.EMA(dataframe, timeperiod=val)
+
         dataframe = merge_informative_pair(dataframe, informative, self.timeframe, '1d', ffill=True)
 
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-
-        conditions = []
-        if self.buy_when_btc_rise.value:
-            conditions.append(dataframe[f'buy_ema_{self.buy_ema_period.value}_1d'] < dataframe['close_1d'])
-        conditions.append(qtpylib.crossed_above(dataframe['close'], dataframe[f'ema_{self.buy_ema_test.value}']))
-        if conditions:
-            dataframe.loc[
-                reduce(lambda x, y: x | y, conditions),
-                'buy'] = 1
-
+        dataframe.loc[
+            (
+                    (dataframe[f'buy_ema_{self.buy_ema_period.value}_1d'] < dataframe['close_1d']) |
+                    (qtpylib.crossed_above(dataframe['close'], dataframe[f'ema_{self.buy_ema_test.value}']))
+            ),
+            'buy'] = 1
         return dataframe
 
 
