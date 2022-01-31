@@ -32,10 +32,10 @@ class lab_strat_v3(IStrategy):
 
     INTERFACE_VERSION = 2
 
-    buy_ema_period = IntParameter(10, 365, default=91, space="buy")
-    buy_ema_test = IntParameter(10, 365, default=147, space="buy")
-    sell_btc_ema_period = IntParameter(20, 300, default=73, space="sell")
-    sell_ema_period = IntParameter(20, 300, default=117, space="sell")
+    buy_ema_period = IntParameter(10, 365, default=18, space="buy")
+    buy_ema_test = IntParameter(10, 365, default=132, space="buy")
+    sell_btc_ema_period = IntParameter(20, 300, default=37, space="sell")
+    sell_ema_period = IntParameter(20, 300, default=74, space="sell")
     # Optimal timeframe for the strategy.
     timeframe = '4h'
 
@@ -50,7 +50,7 @@ class lab_strat_v3(IStrategy):
     # Trailing stop:
     trailing_stop = True
     trailing_stop_positive = 0.01
-    trailing_stop_positive_offset = 0.101
+    trailing_stop_positive_offset = 0.079
     trailing_only_offset_is_reached = True
     # Run "populate_indicators()" only for new candle.
     process_only_new_candles = False
