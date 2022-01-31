@@ -126,7 +126,6 @@ class lab_strat_v3(IStrategy):
                     ((dataframe[f'buy_ema_{self.buy_ema_period.value}_1d'] < dataframe['close_1d']) & (dataframe['ema_ok'] > 0)) |
                     (qtpylib.crossed_above(dataframe['close'], dataframe[f'ema_{self.buy_ema_test.value}'])) | 
                     ((dataframe['efi_ok'] > 0) & (dataframe['ssl_ok'] > 0))
-#                    ((dataframe['efi_ok'] > 0) & (dataframe['ssl_ok'] > 0))
             ),
             'buy'] = 1
         return dataframe
