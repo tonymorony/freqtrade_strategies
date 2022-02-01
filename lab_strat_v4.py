@@ -48,7 +48,7 @@ class lab_strat_v4(IStrategy):
     }
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss"
-    stoploss = -0.99
+    stoploss = -0.75
 
     # Trailing stop:
     trailing_stop = True
@@ -70,8 +70,8 @@ class lab_strat_v4(IStrategy):
     order_types = {
         'buy': 'limit',
         'sell': 'limit',
-        'stoploss': 'market',
-        'stoploss_on_exchange': False
+        'stoploss': 'limit',
+        'stoploss_on_exchange': True
     }
 
     # Optional order time in force.
