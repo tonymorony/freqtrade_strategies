@@ -144,3 +144,4 @@ class lab_strat_v4(IStrategy):
             ),
             'sell'] = 1
         return dataframe
+      
