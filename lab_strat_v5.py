@@ -28,7 +28,7 @@ def ssl_atr(dataframe, length = 7):
     df['sslUp'] = np.where(df['hlv'] < 0, df['smaLow'], df['smaHigh'])
     return df['sslDown'], df['sslUp']
 
-class lab_strat_v4(IStrategy):
+class lab_strat_v5(IStrategy):
 
     INTERFACE_VERSION = 2
 
@@ -118,7 +118,7 @@ class lab_strat_v4(IStrategy):
         dataframe['ssl_down'] = ssl_down
         dataframe['ssl_up'] = ssl_up
         dataframe['ssl_ok'] = (
-                (ssl_up > ssl_down) 
+                (ssl_up > ssl_down)
             ).astype('int') * 3
         dataframe['obv'] = ta.OBV(dataframe['close'], dataframe['volume'])
         dataframe['obv_ema'] = ta.EMA(dataframe['obv'], timeperiod=3)
@@ -127,15 +127,20 @@ class lab_strat_v4(IStrategy):
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
+                # btc growing and alt growing too, just buying in this case, pretty safu - no need trigger
                 (
                   (dataframe[f'buy_ema_{self.buy_ema_period.value}_1d'] < dataframe['close_1d']) & (dataframe['ema_ok'] > 0)
                   & (dataframe['obv_ema'].rolling(self.buy_obv1_ema.value).mean() < dataframe['obv_ema'])
                 ) |
+                # alt crossed ema on increasing volumes - considering as a buy signal even if btc is rekt
                 (
                   (qtpylib.crossed_above(dataframe['close'], dataframe[f'ema_{self.buy_ema_test.value}']))
                   & (dataframe['obv_ema'].rolling(self.buy_obv2_ema.value).mean() < dataframe['obv_ema'])
                 ) |
-                ((dataframe['efi_ok'] > 0) & (dataframe['ssl_ok'] > 0))
+                # idkn, this shit is just works so good in backtesting...
+                (
+                  (dataframe['efi_ok'] > 0) & (dataframe['ssl_ok'] > 0)
+                )
             ),
             'buy'] = 1
         return dataframe
@@ -144,10 +149,16 @@ class lab_strat_v4(IStrategy):
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                ((qtpylib.crossed_below(dataframe['close'], dataframe[f'sell_ema_{self.sell_ema_period.value}'])) &
-                (dataframe[f'sell_ema_{self.sell_btc_ema_period.value}_1d'] > dataframe['close_1d'])) |
-                ((dataframe['obv_ema'].rolling(self.sell_obv_ema.value).mean() < dataframe['obv_ema'])
-                & (qtpylib.crossed_below(dataframe['close'], dataframe[f'sell_ema_{self.sell_ema_period.value}'])))
+                # selling if btc and alt are rekt - most probably there will be buyback opportunity
+                (
+                  (qtpylib.crossed_below(dataframe['close'], dataframe[f'sell_ema_{self.sell_ema_period.value}'])) &
+                  (dataframe[f'sell_ema_{self.sell_btc_ema_period.value}_1d'] > dataframe['close_1d'])
+                ) |
+                # selling if alt broke ema with increasing volumes
+                (
+                  (dataframe['obv_ema'].rolling(self.sell_obv_ema.value).mean() < dataframe['obv_ema'])
+                  & (qtpylib.crossed_below(dataframe['close'], dataframe[f'sell_ema_{self.sell_ema_period.value}']))
+                )
             ),
             'sell'] = 1
         return dataframe
